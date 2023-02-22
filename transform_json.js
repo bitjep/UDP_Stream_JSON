@@ -2,6 +2,7 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const output_folder = path.join("outputs", "transformed");
+const check_time = true;
 
 const check_create_folder = async folder_name => {
     try {
@@ -26,7 +27,11 @@ const transform_channel_object = chan => {
 const transform_data_object = data => {
     const channels = {};
     for (let i = 0; i < data.length; i++) {
-        channels[`channel_${i}`] = transform_channel_object(data[i]);
+        // channels[`channel_${i}`] = transform_channel_object(data[i]);
+        let chan = data[i];
+        for (let j = 0; j < chan.length; j++) {
+            channels[`channel_${i}_band_${j}`] = chan[j];
+        }
     }
     return channels;
 };
@@ -45,6 +50,9 @@ const update_single_json = async (src_file_path, dst_file_path) => {
 };
 
 const update_complete_folder = async (input_path, output_path) => {
+    let initial_time;
+    if (check_time)
+        initial_time = new Date().getTime();
     await check_create_folder(output_path);
     const folder_content = await fs.readdir(input_path);
     const folder_jsons = folder_content.filter(content => {
@@ -59,6 +67,8 @@ const update_complete_folder = async (input_path, output_path) => {
         await update_single_json(source, dest);
     }
     console.log(`\n\nSuccessfully transformed ${folder_jsons.length} JSONS from ${input_path}.`);
+    if (check_time)
+        console.log(`Total time = ${new Date().getTime() - initial_time} ms.`);
 };
 
 update_complete_folder("outputs", output_folder);
