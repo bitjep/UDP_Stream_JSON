@@ -1,4 +1,4 @@
-### To Run:
+## To Run:
 
 *You need Node.JS (16.16.0) and NPM (8.11.0) installed before running this code.*
 
@@ -15,3 +15,10 @@
 - Save your file.
 
 **Note:** The server creates a new file on every start-up.
+
+
+## To transform the JSON files:
+
+Once you have all your json files in the ***./UDP_Stream_JSON/outputs*** folder, you can run the JSON transformer to match a pyhon dictionary.
+
+- Execute `npm run json-transform` to transform all the files in ***./UDP_Stream_JSON/outputs***.
