@@ -43,13 +43,12 @@ const update_single_json = async (src_file_path, dst_file_path) => {
         start_time = new Date().getTime();
     const file = await fs.readFile(src_file_path);
     const JSON_file = file.toString().split('\n');
-    let new_json_str = "";
+    await fs.writeFile(dst_file_path, "");
     for (const line of JSON_file) {
         if (!line)
             continue;
-        new_json_str += JSON.stringify(transform_data_object(JSON.parse(line).data)) + "\n";
+        await fs.appendFile(dst_file_path, JSON.stringify(transform_data_object(JSON.parse(line).data)) + "\n");
     }
-    await fs.writeFile(dst_file_path, new_json_str);
     console.log(`Successfully created ${dst_file_path} from ${src_file_path}.`);
     if (check_time)
         console.log(`Partial time = ${new Date().getTime() - start_time} ms.`);
@@ -66,6 +65,7 @@ const update_complete_folder = async (input_path, output_path) => {
             return true;
         return false;
     });
+    console.log(`Started the transformation of ${folder_jsons.length} JSONS:`);
     for (let file of folder_jsons) {
         const source = path.join(input_path, file);
         const dest = path.join(output_path, `trns_${file}`);
