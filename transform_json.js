@@ -1,4 +1,6 @@
 const fs = require('fs/promises');
+const fsreg = require('fs');
+const readline = require('readline');
 const path = require('path');
 
 const output_folder = path.join("outputs", "transformed");
@@ -41,17 +43,29 @@ const update_single_json = async (src_file_path, dst_file_path) => {
     let start_time;
     if (check_time)
         start_time = new Date().getTime();
-    const file = await fs.readFile(src_file_path);
-    const JSON_file = file.toString().split('\n');
     await fs.writeFile(dst_file_path, "");
-    for (const line of JSON_file) {
-        if (!line)
-            continue;
-        await fs.appendFile(dst_file_path, JSON.stringify(transform_data_object(JSON.parse(line).data)) + "\n");
-    }
-    console.log(`Successfully created ${dst_file_path} from ${src_file_path}.`);
-    if (check_time)
-        console.log(`Partial time = ${new Date().getTime() - start_time} ms.`);
+    // const file = await fs.readFile(src_file_path);
+    // const JSON_file = file.toString().split('\n');
+    // for (const line of JSON_file) {
+    //     if (!line)
+    //     continue;
+    //     await fs.appendFile(dst_file_path, JSON.stringify(transform_data_object(JSON.parse(line).data)) + "\n");
+    // }
+    const fileHandle = await fs.open(src_file_path);
+    const readstream = fileHandle.createReadStream();
+    const writestream = fsreg.createWriteStream(dst_file_path);
+    let rl = readline.createInterface(readstream, writestream);
+    rl.on('line', line => {
+        writestream.write(JSON.stringify(transform_data_object(JSON.parse(line).data)) + "\n", (err) => { if (err) { return err } });
+    });
+    rl.on('error', (error) => console.log(`Error Processing ${src_file_path}:`, error.message));
+    rl.on('close', () => {
+        console.log(`Successfully created ${dst_file_path} from ${src_file_path}.`);
+        if (check_time)
+            console.log(`Partial time = ${new Date().getTime() - start_time} ms.`);
+        return Promise.resolve();
+    });
+
 };
 
 const update_complete_folder = async (input_path, output_path) => {
